@@ -33,25 +33,28 @@ public class Searcher {
         //   efficiency.
     		if (k < 0) {
     			throw new IllegalArgumentException("K can not be negeative number");
+    		} else if (k == 0) {
+    			return new DoubleLinkedList<T>();
+    		} else {
+	    		ArrayHeap<T> sortHeap = new ArrayHeap<T>(); 
+	    		if (input.size() < k ) {
+	    			k = input.size();
+	    		}
+	    		for (int i = 0; i < k; i++) {
+	    			sortHeap.insert(input.get(i));
+	    		}
+	    		for (int i = k; i < input.size(); i++) {
+	    			T element = input.get(i);
+	    			if (element.compareTo(sortHeap.peekMin()) > 0) {
+	    				sortHeap.insert(element);
+	    				sortHeap.removeMin();
+	    			}
+	    		}
+	    		IList<T> result = new DoubleLinkedList<T>();
+	    		for (int i = 0; i < k; i++) {
+	    			result.add(sortHeap.removeMin());
+	    		}
+	    		return result;
     		}
-    		ArrayHeap<T> sortHeap = new ArrayHeap<T>(); 
-    		if (input.size() < k ) {
-    			k = input.size();
-    		}
-    		for (int i = 0; i < k; i++) {
-    			sortHeap.insert(input.get(i));
-    		}
-    		for (int i = k; i < input.size(); i++) {
-    			T element = input.get(i);
-    			if (element.compareTo(sortHeap.peekMin()) > 0) {
-    				sortHeap.insert(element);
-    				sortHeap.removeMin();
-    			}
-    		}
-    		IList<T> result = new DoubleLinkedList<T>();
-    		for (int i = 0; i < k; i++) {
-    			result.add(sortHeap.removeMin());
-    		}
-    		return result;
     }
 }
