@@ -1,5 +1,7 @@
 package misc;
 
+import java.util.Iterator;
+
 import datastructures.concrete.ArrayHeap;
 import datastructures.concrete.DoubleLinkedList;
 import datastructures.interfaces.IList;
@@ -40,11 +42,12 @@ public class Searcher {
 	    		if (input.size() < k ) {
 	    			k = input.size();
 	    		}
+	    		Iterator<T> Iter = input.iterator();
 	    		for (int i = 0; i < k; i++) {
-	    			sortHeap.insert(input.get(i));
+	    			sortHeap.insert(Iter.next());
 	    		}
 	    		for (int i = k; i < input.size(); i++) {
-	    			T element = input.get(i);
+	    			T element = Iter.next();
 	    			if (element.compareTo(sortHeap.peekMin()) > 0) {
 	    				sortHeap.insert(element);
 	    				sortHeap.removeMin();
