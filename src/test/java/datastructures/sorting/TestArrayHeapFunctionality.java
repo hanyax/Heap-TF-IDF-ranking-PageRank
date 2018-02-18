@@ -89,8 +89,7 @@ public class TestArrayHeapFunctionality extends BaseTest {
 		try {
 			heap.peekMin();
 			fail("Can not peek empty heap");
-		} catch (EmptyContainerException exp) {
-			// good
+		} catch (EmptyContainerException exp) { // good
     		}
     }
     
@@ -118,9 +117,8 @@ public class TestArrayHeapFunctionality extends BaseTest {
 		try {
 			heap.peekMin();
 			fail("Can not peek empty heap");
-		} catch (EmptyContainerException exp) {
-			// good
-    		}
+		} catch (EmptyContainerException exp) { // Good
+		}
     }
     
     @Test(timeout=SECOND)
@@ -158,8 +156,7 @@ public class TestArrayHeapFunctionality extends BaseTest {
 		try {
 			heap.peekMin();
 			fail("Can not peek empty heap");
-		} catch (EmptyContainerException exp) {
-			// good
+		} catch (EmptyContainerException exp) { // Good
     		}
     }
     

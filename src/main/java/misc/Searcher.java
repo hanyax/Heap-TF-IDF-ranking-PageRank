@@ -5,6 +5,7 @@ import java.util.Iterator;
 import datastructures.concrete.ArrayHeap;
 import datastructures.concrete.DoubleLinkedList;
 import datastructures.interfaces.IList;
+import datastructures.interfaces.IPriorityQueue;
 
 public class Searcher {
     /**
@@ -33,21 +34,21 @@ public class Searcher {
         //
         // - You should implement this method by using your ArrayHeap for the sake of
         //   efficiency.
-    		if (k < 0) {
+        if (k < 0) {
     			throw new IllegalArgumentException("K can not be negeative number");
     		} else if (k == 0) {
     			return new DoubleLinkedList<T>();
     		} else {
-	    		ArrayHeap<T> sortHeap = new ArrayHeap<T>(); 
-	    		if (input.size() < k ) {
+	    		IPriorityQueue<T> sortHeap = new ArrayHeap<T>(); 
+	    		if (input.size() < k) {
 	    			k = input.size();
 	    		}
-	    		Iterator<T> Iter = input.iterator();
+	    		Iterator<T> iter = input.iterator();
 	    		for (int i = 0; i < k; i++) {
-	    			sortHeap.insert(Iter.next());
+	    			sortHeap.insert(iter.next());
 	    		}
 	    		for (int i = k; i < input.size(); i++) {
-	    			T element = Iter.next();
+	    			T element = iter.next();
 	    			if (element.compareTo(sortHeap.peekMin()) > 0) {
 	    				sortHeap.insert(element);
 	    				sortHeap.removeMin();
