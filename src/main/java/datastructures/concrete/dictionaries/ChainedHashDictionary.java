@@ -77,7 +77,6 @@ public class ChainedHashDictionary<K, V> implements IDictionary<K, V> {
     
     private void ensurePerformance() {
     		if ((totalSize * 1.0 / bucketSize) > 0.5) {
-    			System.out.println(this.bucketSize); // Debug mark!!!!!!!!!!!!!!!
     			this.bucketSize = this.bucketSize * this.bucketSize;
     			IDictionary<K, V>[] newChains = this.makeArrayOfChains(bucketSize);
     			for (KVPair<K, V> pair : this) {

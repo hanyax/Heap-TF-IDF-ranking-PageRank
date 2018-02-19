@@ -1,5 +1,6 @@
 package search.analyzers;
 
+import datastructures.concrete.ChainedHashSet;
 import datastructures.concrete.KVPair;
 import datastructures.concrete.dictionaries.ChainedHashDictionary;
 import datastructures.interfaces.IDictionary;
@@ -54,18 +55,24 @@ public class TfIdfAnalyzer {
        IDictionary<String, Integer> termNumbers = new ChainedHashDictionary<String, Integer>();
        for (Webpage page : pages) {
            IList<String> words = page.getWords();
+           ISet<String> added = new ChainedHashSet<String>();
            for (String word : words) {
-               if (termNumbers.containsKey(word)) {
+               if (termNumbers.containsKey(word) && !added.contains(word)) {
                    int docAppered = termNumbers.get(word);
                    termNumbers.put(word, docAppered + 1);
-               } else {
+                   added.add(word);
+               } else if (!termNumbers.containsKey(word)) {
                    termNumbers.put(word, 1);
+                   added.add(word);
+               } else {
+                   // do nothing
                }
            }
        } 
        IDictionary<String, Double> IDF = new ChainedHashDictionary<String, Double>();
        for (KVPair<String, Integer> term : termNumbers) {
            IDF.put(term.getKey(), Math.log(pages.size() * 1.0/term.getValue()));
+           System.out.println(pages.size() * 1.0/term.getValue());
        }
        return IDF;
     }
@@ -89,6 +96,7 @@ public class TfIdfAnalyzer {
         IDictionary<String, Double> TF = new ChainedHashDictionary<String, Double>();
         for (KVPair<String, Integer> term : termNumbers) {
             TF.put(term.getKey(), (term.getValue()/(words.size() * 1.0)));
+            //System.out.println(term.getValue()/(words.size() * 1.0));
         }
         return TF;
     }
@@ -125,31 +133,41 @@ public class TfIdfAnalyzer {
         //    Add a third field containing that information.
         //
         // 2. See if you can combine or merge one or more loops.
+        
         IDictionary<String, Double> TfIdfPage = this.documentTfIdfVectors.get(pageUri);
+        IDictionary<String, Double> TfQuery = this.computeTfScores(query);
         
-        IDictionary<String, Double> TfIdfQuery = this.computeTfScores(query);
-        
-        
-        for (KVPair<String, Double> word : TfIdfQuery) {
-            
-            
-            double queryWordScore;
-            if (this.idfScores.containsKey(word.getKey())) {
-                TfIdfQuery.put(word.getKey(), word.getValue() * this.idfScores.get(word.getKey()));
-            } else {
-                TfIdfQuery.put(word.getKey(), 0.0);
+        double numerator = 0.0;
+        double normSquareQuery = 0.0;
+        for (KVPair<String, Double> word : TfQuery) {
+            double docWordScore = 0.0;
+            if (TfIdfPage.containsKey(word.getKey())) {
+                docWordScore = TfIdfPage.get(word.getKey());
             }
+            
+            double queryWordScore = 0.0;
+            if (this.idfScores.containsKey(word.getKey())) {
+                queryWordScore = word.getValue() * this.idfScores.get(word.getKey());
+            } 
+            
+            numerator += docWordScore * queryWordScore;
+            normSquareQuery += queryWordScore * queryWordScore;
         }
         
+        double denominator = norm(TfIdfPage) * Math.sqrt(normSquareQuery);
         
-        
+        if (denominator != 0) {
+            return numerator/denominator;
+        } else {
+            return 0.0;
+        }
     }
         
     private double norm(IDictionary<String, Double> vector) {
         double output = 0.0;
         for(KVPair<String, Double> pair : vector) {
             double score = pair.getValue();
-            output = score * score;
+            output += score * score;
         }
         return Math.sqrt(output);
     }
