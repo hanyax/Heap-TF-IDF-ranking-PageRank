@@ -27,6 +27,7 @@ public class TfIdfAnalyzer {
     //
     // We will use each webpage's page URI as a unique key.
     private IDictionary<URI, IDictionary<String, Double>> documentTfIdfVectors;
+    private IDictionary<URI, Double> VectorsNormSquare = new ChainedHashDictionary<URI, Double>();
     
 
     public TfIdfAnalyzer(ISet<Webpage> webpages) {
@@ -107,13 +108,17 @@ public class TfIdfAnalyzer {
     private IDictionary<URI, IDictionary<String, Double>> computeAllDocumentTfIdfVectors(ISet<Webpage> pages) {
         IDictionary<URI, IDictionary<String, Double>> TfIdfs = new ChainedHashDictionary<URI, IDictionary<String, Double>>();
         for (Webpage page : pages) {
+            double normSquare = 0.0;
             IDictionary<String, Double> TfIdfsEachPage = new ChainedHashDictionary<String, Double>();
             IList<String> words = page.getWords();
             IDictionary<String, Double> TFsForSinglePage = this.computeTfScores(words);
             for (KVPair<String, Double> TF : TFsForSinglePage) {
-                TfIdfsEachPage.put(TF.getKey(), TF.getValue() * this.idfScores.get(TF.getKey()));
+                double score = TF.getValue() * this.idfScores.get(TF.getKey());
+                TfIdfsEachPage.put(TF.getKey(), score);
+                normSquare += score * score;
             }
             TfIdfs.put(page.getUri(), TfIdfsEachPage);
+            this.VectorsNormSquare.put(page.getUri(), normSquare);
         }
         return TfIdfs;
     }
@@ -154,22 +159,12 @@ public class TfIdfAnalyzer {
             normSquareQuery += queryWordScore * queryWordScore;
         }
         
-        double denominator = norm(TfIdfPage) * Math.sqrt(normSquareQuery);
+        double denominator = Math.sqrt(this.VectorsNormSquare.get(pageUri)) * Math.sqrt(normSquareQuery);
         
         if (denominator != 0) {
             return numerator/denominator;
         } else {
             return 0.0;
         }
-    }
-        
-    private double norm(IDictionary<String, Double> vector) {
-        double output = 0.0;
-        for(KVPair<String, Double> pair : vector) {
-            double score = pair.getValue();
-            output += score * score;
-        }
-        return Math.sqrt(output);
-    }
-        
+    }              
 }
