@@ -1,11 +1,16 @@
 package search.analyzers;
 
+import datastructures.concrete.ChainedHashSet;
+import datastructures.concrete.KVPair;
+import datastructures.concrete.dictionaries.ChainedHashDictionary;
 import datastructures.interfaces.IDictionary;
+import datastructures.interfaces.IList;
 import datastructures.interfaces.ISet;
 import misc.exceptions.NotYetImplementedException;
 import search.models.Webpage;
 
 import java.net.URI;
+import java.util.Iterator;
 
 /**
  * This class is responsible for computing the 'page rank' of all available webpages.
@@ -14,6 +19,7 @@ import java.net.URI;
  */
 public class PageRankAnalyzer {
     private IDictionary<URI, Double> pageRanks;
+    private ISet<URI> allURI = new ChainedHashSet<URI>();
 
     /**
      * Computes a graph representing the internet and computes the page rank of all
@@ -35,11 +41,11 @@ public class PageRankAnalyzer {
         // You should uncomment these lines when you're ready to begin working
         // on this class.
 
-        // Step 1: Make a graph representing the 'internet'
-        //IDictionary<URI, ISet<URI>> graph = this.makeGraph(webpages);
+        //Step 1: Make a graph representing the 'internet'
+        IDictionary<URI, ISet<URI>> graph = this.makeGraph(webpages);
 
         // Step 2: Use this graph to compute the page rank for each webpage
-        //this.pageRanks = this.makePageRanks(graph, decay, limit, epsilon);
+        this.pageRanks = this.makePageRanks(graph, decay, limit, epsilon);
 
         // Note: we don't store the graph as a field: once we've computed the
         // page ranks, we no longer need it!
@@ -57,7 +63,24 @@ public class PageRankAnalyzer {
      * entirely "self-contained".
      */
     private IDictionary<URI, ISet<URI>> makeGraph(ISet<Webpage> webpages) {
-        throw new NotYetImplementedException();
+        for (Webpage webpage: webpages) {
+            allURI.add(webpage.getUri());
+        }
+    
+        IDictionary<URI, ISet<URI>> pageGraph = new ChainedHashDictionary<URI, ISet<URI>>();
+        for (Webpage page: webpages) {
+            IList<URI> links = page.getLinks();
+            ISet<URI> childenLinks = new ChainedHashSet<URI>();
+            ISet<URI> added = new ChainedHashSet<URI>();
+            for (URI link : links) {
+                if (allURI.contains(link) && !link.equals(page.getUri()) && !added.contains(link)) {
+                    childenLinks.add(link);
+                    added.add(link);
+                }
+            }
+            pageGraph.put(page.getUri(), childenLinks);
+        }
+        return pageGraph;
     }
 
     /**
@@ -77,16 +100,56 @@ public class PageRankAnalyzer {
                                                    int limit,
                                                    double epsilon) {
         // Step 1: The initialize step should go here
-
+        IDictionary<URI, Double> oldPageRanks = new ChainedHashDictionary<URI, Double>();
+        IDictionary<URI, Double> newPageRanks = new ChainedHashDictionary<URI, Double>();
+        for (URI uri : this.allURI) {
+            oldPageRanks.put(uri, 1.0/allURI.size());
+        }
+       
         for (int i = 0; i < limit; i++) {
             // Step 2: The update step should go here
-
+            
+            // 1) give every web page a new page rank of 0.0
+            for (URI uri : this.allURI) {
+                newPageRanks.put(uri, 0.0);
+            }
+            
+            // 2)
+            for (KVPair<URI, ISet<URI>> vertex : graph) {
+                double oldRank = oldPageRanks.get(vertex.getKey());
+                double increment = decay * oldRank / vertex.getValue().size();
+                if (vertex.getValue().size() > 0) {
+                    for (URI linkedVertex : vertex.getValue()) {
+                        newPageRanks.put(linkedVertex, newPageRanks.get(linkedVertex) + increment);
+                    }
+                } else {
+                    for (KVPair<URI, Double> newRank : newPageRanks) {
+                        increment = decay * oldRank/this.allURI.size();
+                        newPageRanks.put(newRank.getKey(), newPageRanks.get(newRank.getKey()) + increment);
+                    }
+                }
+                
+                // 3
+                increment = (1 - decay) / this.allURI.size();
+                newPageRanks.put(vertex.getKey(), newPageRanks.get(vertex.getKey()) + increment);
+            }
+            
             // Step 3: the convergence step should go here.
             // Return early if we've converged.
-            
-            throw new NotYetImplementedException();
+            boolean exist = true;
+            for (KVPair<URI, Double> newRank : newPageRanks) {
+                double oldRank = oldPageRanks.get(newRank.getKey());
+                if (Math.abs(newRank.getValue() - oldRank) > epsilon) {
+                    exist = false;
+                }
+            }
+            if (exist) {
+                return oldPageRanks;
+            } else {
+                oldPageRanks = newPageRanks;
+            }
         }
-        throw new NotYetImplementedException();
+        return oldPageRanks;
     }
 
     /**
@@ -97,6 +160,6 @@ public class PageRankAnalyzer {
      */
     public double computePageRank(URI pageUri) {
         // Implementation note: this method should be very simple: just one line!
-        return 1.0;
+        return pageRanks.get(pageUri);
     }
 }
