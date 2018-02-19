@@ -101,7 +101,6 @@ public class PageRankAnalyzer {
                                                    double epsilon) {
         // Step 1: The initialize step should go here
         IDictionary<URI, Double> oldPageRanks = new ChainedHashDictionary<URI, Double>();
-        IDictionary<URI, Double> newPageRanks = new ChainedHashDictionary<URI, Double>();
         for (URI uri : this.allURI) {
             oldPageRanks.put(uri, 1.0/allURI.size());
         }
@@ -110,34 +109,31 @@ public class PageRankAnalyzer {
             // Step 2: The update step should go here
             
             // 1) give every web page a new page rank of 0.0
+            IDictionary<URI, Double> newPageRanks = new ChainedHashDictionary<URI, Double>();
             for (URI uri : this.allURI) {
                 newPageRanks.put(uri, 0.0);
             }
-            
+  
             // 2)
             for (KVPair<URI, ISet<URI>> vertex : graph) {
                 double oldRank = oldPageRanks.get(vertex.getKey());
-                double increment = decay * oldRank / vertex.getValue().size();
                 if (vertex.getValue().size() > 0) {
                     for (URI linkedVertex : vertex.getValue()) {
-                        newPageRanks.put(linkedVertex, newPageRanks.get(linkedVertex) + increment);
+                        newPageRanks.put(linkedVertex, newPageRanks.get(linkedVertex) + (decay * oldRank / vertex.getValue().size()));
                     }
                 } else {
                     for (KVPair<URI, Double> newRank : newPageRanks) {
-                        increment = decay * oldRank/this.allURI.size();
-                        newPageRanks.put(newRank.getKey(), newPageRanks.get(newRank.getKey()) + increment);
+                        newPageRanks.put(newRank.getKey(), newPageRanks.get(newRank.getKey()) + (decay * oldRank / this.allURI.size()));
                     }
                 }
-                
-                // 3
-                increment = (1 - decay) / this.allURI.size();
-                newPageRanks.put(vertex.getKey(), newPageRanks.get(vertex.getKey()) + increment);
             }
             
             // Step 3: the convergence step should go here.
             // Return early if we've converged.
             boolean exist = true;
             for (KVPair<URI, Double> newRank : newPageRanks) {
+                // Step 2-3 
+                newPageRanks.put(newRank.getKey(), newRank.getValue() + ((1 - decay) / this.allURI.size()));
                 double oldRank = oldPageRanks.get(newRank.getKey());
                 if (Math.abs(newRank.getValue() - oldRank) > epsilon) {
                     exist = false;
