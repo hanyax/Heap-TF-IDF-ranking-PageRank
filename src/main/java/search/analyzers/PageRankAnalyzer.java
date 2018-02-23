@@ -116,11 +116,13 @@ public class PageRankAnalyzer {
                 double oldRank = oldPageRanks.get(vertex.getKey());
                 if (vertex.getValue().size() > 0) {
                     for (URI linkedVertex : vertex.getValue()) {
-                        newPageRanks.put(linkedVertex, newPageRanks.get(linkedVertex) + (decay * oldRank / vertex.getValue().size()));
+                        newPageRanks.put(linkedVertex, newPageRanks.get(linkedVertex) + (decay * oldRank / 
+                                vertex.getValue().size()));
                     }
                 } else {
                     for (KVPair<URI, Double> newRank : newPageRanks) {
-                        newPageRanks.put(newRank.getKey(), newPageRanks.get(newRank.getKey()) + (decay * oldRank / this.allURI.size()));
+                        newPageRanks.put(newRank.getKey(), newPageRanks.get(newRank.getKey()) 
+                                + (decay * oldRank / this.allURI.size()));
                     }
                 }
             }
