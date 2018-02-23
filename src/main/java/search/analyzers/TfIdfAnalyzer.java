@@ -73,7 +73,6 @@ public class TfIdfAnalyzer {
        IDictionary<String, Double> IDF = new ChainedHashDictionary<String, Double>();
        for (KVPair<String, Integer> term : termNumbers) {
            IDF.put(term.getKey(), Math.log(pages.size() * 1.0/term.getValue()));
-           System.out.println(pages.size() * 1.0/term.getValue());
        }
        return IDF;
     }
